@@ -25,3 +25,20 @@
 - name: Setup GPU passthrough
   ansible.builtin.import_tasks: pcie_passthrough.yml
   when: pcie_passthrough.enable
+
+# ansible-galaxy collection install community.general
+- name: Create or update Cloudflare DNS record with private IP
+  when: cloudflare_enabled | default(false)
+  community.general.cloudflare_dns:
+    zone: "{{ cloudflare_zone }}"
+    record: "{{ cloudflare_record_name }}"
+    type: "{{ cloudflare_record_type }}"
+    value: "{{ cloudflare_record_ip }}"
+    ttl: "{{ cloudflare_ttl }}"
+    proxied: "{{ cloudflare_proxy }}"
+    api_token: "{{ cloudflare_api_token }}"
+  delegate_to: localhost
+  vars:
+    ansible_connection: local
+    ansible_become: false
+    ansible_python_interpreter: /usr/bin/python3
