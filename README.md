@@ -20,6 +20,13 @@ Modify the `host_vars` and `group_vars` files according to your desired setup. F
 
 # Running the playbook
 
+If your on mac like myself you will need to install the following packages via Brew:
+- `ansible`
+- `ansible-lint`
+- `hudochenkov/sshpass/sshpass`
+
+`brew install ansible ansible-lint hudochenkov/sshpass/sshpass`
+
 Once the inventory and variables are setup, run the playbook using `ansible-playbook playbooks/setup.yml -i inventories/<name>/hosts.ym;`.
 You can add `--ask-ssh-pass` / `-k` if you don't have a public ssh key setup on the proxmox host, and `--ask-pass` / `-K` if running with a non-root user.
 

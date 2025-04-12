@@ -12,7 +12,7 @@
 - name: Reboot
   ansible.builtin.reboot:
 
-- name: Restart nginx
-  ansible.builtin.systemd:
-    name: nginx
-    state: restarted
+# - name: Restart nginx
+#   ansible.builtin.systemd:
+#     name: nginx
+#     state: restarted
