@@ -1,0 +1,33 @@
+auto lo
+iface lo inet loopback
+
+# Bond0: 2.5GbE Management
+auto {{ network_config.mgmt.bond.name }}
+iface {{ network_config.mgmt.bond.name }} inet manual
+    bond-slaves {{ network_config.mgmt.bond.interfaces | join(' ') }}
+    bond-miimon 100
+    bond-mode {{ network_config.mgmt.bond.mode }}
+
+auto {{ network_config.mgmt.bridge.name }}
+iface {{ network_config.mgmt.bridge.name }} inet static
+    address {{ network_config.mgmt.bridge.address }}
+    netmask {{ network_config.mgmt.bridge.netmask }}
+    gateway {{ network_config.mgmt.bridge.gateway }}
+    bridge-ports {{ network_config.mgmt.bond.name }}
+    bridge-stp off
+    bridge-fd 0
+
+# Bond1: 10GbE Storage/Cluster
+auto {{ network_config.cluster.bond.name }}
+iface {{ network_config.cluster.bond.name }} inet manual
+    bond-slaves {{ network_config.cluster.bond.interfaces | join(' ') }}
+    bond-miimon 100
+    bond-mode {{ network_config.cluster.bond.mode }}
+
+auto {{ network_config.cluster.bridge.name }}
+iface {{ network_config.cluster.bridge.name }} inet static
+    address {{ network_config.cluster.bridge.address }}
+    netmask {{ network_config.cluster.bridge.netmask }}
+    bridge-ports {{ network_config.cluster.bond.name }}
+    bridge-stp off
+    bridge-fd 0

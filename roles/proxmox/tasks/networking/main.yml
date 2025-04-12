@@ -1,0 +1,10 @@
+---
+- name: Configure Proxmox networking with bonded interfaces and bridges
+  ansible.builtin.template:
+    src: interfaces.j2
+    # dest: /tmp/interfaces.preview
+    dest: /etc/network/interfaces
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart networking

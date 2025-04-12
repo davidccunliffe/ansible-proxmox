@@ -6,6 +6,10 @@
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
 
+- name: Include networking tasks
+  ansible.builtin.import_tasks: networking/main.yml
+  tags: networking
+
 - name: Setup storage
   ansible.builtin.import_tasks: storage/main.yml
   tags: storage

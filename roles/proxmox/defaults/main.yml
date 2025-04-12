@@ -43,3 +43,24 @@ container_defaults:
   netdev_firewall: true
   nameserver: ""
   searchdomain: ""
+
+network_config:
+  mgmt:
+    bond:
+      name: bond0
+      mode: balance-rr
+      interfaces: [enp87s0, enp90s0]
+    bridge:
+      name: vmbr0
+      address: "{{ ansible_default_ipv4.address }}"
+      netmask: 24
+      gateway: "{{ ansible_default_ipv4.gateway }}"
+  cluster:
+    bond:
+      name: bond1
+      mode: balance-rr
+      interfaces: [enp2s0f0np0, enp2s0f1np1]
+    bridge:
+      name: vmbr1
+      address: "10.0.0.{{ inventory_hostname[-1] }}"
+      netmask: 24
