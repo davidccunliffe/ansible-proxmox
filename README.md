@@ -37,3 +37,11 @@ The current available tags are:
 - `storage` - downloads ISOs and CT templates
 - `vms` - creates and updates the configuration for VMs
 - `containers` - creates and updates the configuration for containers
+
+# Key Additions:
+
+    Cluster-Aware Template Creation: Document the process of building templates on a designated builder node and replicating them across follower nodes.​
+    Inventory Configuration: Explain how to define proxmox_builder and proxmox_followers groups in your inventory.​
+    Cloud-Init Customization: Detail the use of user-data and meta-data templates for cloud-init configurations.​
+    Role Variables: List and describe new variables introduced for template management and replication.​
+    Troubleshooting Tips: Provide solutions for common issues encountered during template creation and replication.​
