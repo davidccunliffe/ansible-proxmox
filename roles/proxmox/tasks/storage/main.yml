@@ -1,4 +1,42 @@
 ---
+- name: Get existing storage IDs
+  ansible.builtin.command: pvesh get /storage --output-format json
+  register: pve_storage
+  changed_when: false
+
+- name: Debug storage list from Proxmox
+  ansible.builtin.debug:
+    var: pve_storage.stdout
+
+- name: Debug parsed storage list
+  ansible.builtin.debug:
+    msg: "{{ pve_storage.stdout | from_json | map(attribute='storage') | list }}"
+
+- name: Ensure CIFS mount directory exists
+  file:
+    path: "/mnt/pve/{{ item.id }}"
+    state: directory
+    owner: root
+    group: www-data
+    mode: '0755'
+  loop: "{{ proxmox_storage }}"
+  when: item.type == 'cifs'
+
+
+- name: Ensure SMB/CIFS storage is configured (if not exists)
+  ansible.builtin.command: >
+    pvesm add cifs {{ item.id }}
+    --server {{ item.server }}
+    --share {{ item.export | regex_replace('^/', '') }}
+    --username {{ item.username }}
+    --password {{ item.password }}
+    --content {{ item.content | join(',') }}
+    --path {{ item.path }}
+  loop: "{{ proxmox_storage }}"
+  when:
+    - item.type == 'cifs'
+    - item.id not in (pve_storage.stdout | from_json | map(attribute='storage') | list)
+
 - name: Update storages
   ansible.builtin.include_tasks: update_storage.yml
   with_items: "{{ storage | dict2items }}"

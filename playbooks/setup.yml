@@ -1,7 +1,5 @@
 ---
 - hosts: all
-
   name: Proxmox setup
-
   roles:
     - proxmox

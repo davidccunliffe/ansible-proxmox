@@ -1,0 +1,12 @@
+{% for store in proxmox_storage %}
+{{ store.type }}: {{ store.id }}
+    path {{ store.path }}
+    server {{ store.server }}
+    share {{ store.export | regex_replace('^/', '') }}
+    content {{ store.content | join(',') }}
+    username {{ store.username }}
+    password {{ store.password }}
+    {{ 'shared 1' if store.shared else 'shared 0' }}
+    {{ 'enable 1' if store.enable else 'enable 0' }}
+    mkdir 1
+{% endfor %}
