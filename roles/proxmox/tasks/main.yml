@@ -18,6 +18,14 @@
   ansible.builtin.import_tasks: templates/main.yml
   tags: templates
 
+- name: Ensure dependencies are installed for cloud-init are installed
+  ansible.builtin.import_tasks: setup/main.yml
+
+- name: Create Ubuntu 24.04 VM template
+  ansible.builtin.import_tasks: templates/ubuntu-2404.yml
+  when: ubuntu_template.enabled | default(false)
+  tags: ubuntu_template
+
 - name: Setup VMs
   ansible.builtin.import_tasks: vm/main.yml
   tags: vms

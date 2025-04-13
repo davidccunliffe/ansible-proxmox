@@ -1,0 +1,23 @@
+#cloud-config
+manage_etc_hosts: true
+preserve_hostname: false
+package_update: true
+package_upgrade: true
+packages:
+  - neovim
+  - curl
+  - git
+  - qemu-guest-agent
+users:
+  - default
+  - name: ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh-authorized-keys:
+      - {{ ubuntu_template.ssh_public_key }}
+runcmd:
+  - echo 'ubuntu:ubuntu' | chpasswd
+  - chage -d 0 ubuntu
+  - systemctl enable --now qemu-guest-agent
+  - echo "Provisioning complete at $(date)" > /etc/provisioned.txt
+  - pro config set apt_news=false || true

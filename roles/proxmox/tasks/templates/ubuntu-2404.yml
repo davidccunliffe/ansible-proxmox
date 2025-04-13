@@ -1,0 +1,104 @@
+- name: Ensure Ubuntu template directory exists
+  file:
+    path: "/mnt/pve/{{ ubuntu_template.storage }}/templates/ubuntu-noble"
+    state: directory
+
+- name: Download Ubuntu cloud image if not present
+  get_url:
+    url: "{{ ubuntu_template.img_url }}"
+    dest: "/mnt/pve/{{ ubuntu_template.storage }}/templates/ubuntu-noble/{{ ubuntu_template.img_url | basename }}"
+    force: no
+
+- name: Remove stale image (older than 7 days)
+  find:
+    paths: "/mnt/pve/{{ ubuntu_template.storage }}/templates/ubuntu-noble"
+    patterns: "{{ ubuntu_template.img_url | basename }}"
+    age: 7d
+  register: old_image
+
+- name: Re-download stale image
+  get_url:
+    url: "{{ ubuntu_template.img_url }}"
+    dest: "/mnt/pve/{{ ubuntu_template.storage }}/templates/ubuntu-noble/{{ ubuntu_template.img_url | basename }}"
+    force: true
+  when: old_image.matched > 0
+
+- name: Create cloudinit-data directory
+  file:
+    path: "/mnt/pve/{{ ubuntu_template.storage }}/templates/ubuntu-noble/cloudinit-data"
+    state: directory
+
+- name: Generate cloud-init user-data
+  template:
+    src: cloudinit/user-data-ubuntu.j2
+    dest: "/mnt/pve/{{ ubuntu_template.storage }}/templates/ubuntu-noble/cloudinit-data/user-data"
+
+- name: Generate cloud-init meta-data
+  template:
+    src: cloudinit/meta-data.j2
+    dest: "/mnt/pve/{{ ubuntu_template.storage }}/templates/ubuntu-noble/cloudinit-data/meta-data"
+
+- name: Create cloud-init ISO
+  command: >
+    cloud-localds {{ ubuntu_template.name }}-cloudinit.iso cloudinit-data/user-data cloudinit-data/meta-data
+  args:
+    chdir: "/mnt/pve/{{ ubuntu_template.storage }}/templates/ubuntu-noble"
+
+- name: Move cloud-init ISO to Proxmox storage
+  copy:
+    src: "/mnt/pve/{{ ubuntu_template.storage }}/templates/ubuntu-noble/{{ ubuntu_template.name }}-cloudinit.iso"
+    dest: "/mnt/pve/{{ ubuntu_template.storage }}/template/iso/{{ ubuntu_template.name }}-cloudinit.iso"
+    remote_src: true
+
+- name: Create Proxmox VM
+  command: >
+    qm create {{ ubuntu_template.vmid }}
+    --name {{ ubuntu_template.name }}
+    --memory {{ ubuntu_template.memory }}
+    --cores {{ ubuntu_template.cores }}
+    --net0 virtio,bridge={{ ubuntu_template.bridge }}
+    --serial0 socket
+    --ostype l26
+    --scsihw virtio-scsi-pci
+
+- name: Import disk image
+  command: >
+    qm importdisk {{ ubuntu_template.vmid }} {{ ubuntu_template.img_url | basename }} {{ ubuntu_template.storage }} --format qcow2
+  args:
+    chdir: "/mnt/pve/{{ ubuntu_template.storage }}/templates/ubuntu-noble"
+
+- name: Attach disk to VM
+  command: >
+    qm set {{ ubuntu_template.vmid }} --scsi0 {{ ubuntu_template.storage }}:{{ ubuntu_template.vmid }}/vm-{{ ubuntu_template.vmid }}-disk-0.qcow2
+
+- name: Set boot order
+  command: >
+    qm set {{ ubuntu_template.vmid }} --boot order=scsi0
+
+- name: Resize disk
+  command: >
+    qm resize {{ ubuntu_template.vmid }} scsi0 {{ ubuntu_template.disk_size }}
+
+- name: Attach cloud-init ISO
+  command: >
+    qm set {{ ubuntu_template.vmid }} --ide2 {{ ubuntu_template.storage }}:iso/{{ ubuntu_template.name }}-cloudinit.iso,media=cdrom
+
+- name: Enable QEMU guest agent
+  command: >
+    qm set {{ ubuntu_template.vmid }} --agent enabled=1
+
+- name: Enable serial console
+  command: >
+    qm set {{ ubuntu_template.vmid }} --vga serial0
+
+- name: Mark VM as template
+  command: >
+    qm template {{ ubuntu_template.vmid }}
+
+- name: Create test linked clone
+  command: >
+    qm clone {{ ubuntu_template.vmid }} {{ ubuntu_template.clone_vmid }} --name {{ ubuntu_template.clone_name }} --full 0
+
+- name: Start cloned VM
+  command: >
+    qm start {{ ubuntu_template.clone_vmid }}

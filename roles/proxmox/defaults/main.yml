@@ -64,3 +64,17 @@ network_config:
       name: vmbr1
       address: "10.0.0.{{ inventory_hostname[-1] }}"
       netmask: 24
+
+ubuntu_template:
+  enabled: true
+  vmid: 10000
+  clone_vmid: 100
+  name: ubuntu-2404-cloudinit
+  clone_name: ubuntu-2404-test
+  img_url: https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img
+  storage: ugreen
+  bridge: vmbr0
+  memory: 2048
+  cores: 2
+  disk_size: 64G
+  ssh_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKU06G//LXXxju8FgP15WA7JBqfV07JCgIneei01tyS5"

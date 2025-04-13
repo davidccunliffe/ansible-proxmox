@@ -42,3 +42,9 @@
     ansible_connection: local
     ansible_become: false
     ansible_python_interpreter: /usr/bin/python3
+
+- name: Ensure cloud-image-utils is installed
+  ansible.builtin.apt:
+    name: cloud-image-utils
+    state: present
+    update_cache: true
